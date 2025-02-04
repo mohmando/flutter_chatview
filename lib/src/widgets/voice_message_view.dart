@@ -59,15 +59,25 @@ class _VoiceMessageViewState extends State<VoiceMessageView> {
   @override
   void initState() {
     super.initState();
-    controller = PlayerController()
-      ..preparePlayer(
+    _initializeAudioController();
+  }
+  
+  void _initializeAudioController() async {
+    try {
+      await controller.preparePlayer(
         path: widget.message.message,
         noOfSamples: widget.config?.playerWaveStyle
                 ?.getSamplesForWidth(widget.screenWidth * 0.5) ??
             playerWaveStyle.getSamplesForWidth(widget.screenWidth * 0.5),
       );
-    playerStateSubscription = controller.onPlayerStateChanged
-        .listen((state) => _playerState.value = state);
+      widget.onMaxDuration?.call(controller.maxDuration);
+    } catch (e) {
+      print('Audio preparation error: $e');
+      // Optional: Show user-friendly error dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to load audio message')),
+      );
+    }
   }
 
   @override
